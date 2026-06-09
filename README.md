@@ -21,13 +21,13 @@ Sử dụng **Playwright + Python** để kiểm thử hệ thống Mượn sác
 | **Lớp**      | `<!-- VD: SE001.P11 -->`     |
 | **Học kỳ**   | `<!-- VD: HK2 2025-2026 -->` |
 
-| #   | MSSV | Họ và tên | Vai trò     |
-| --- | ---- | --------- | ----------- |
-| 1   |      |           | Nhóm trưởng |
-| 2   |      |           | Thành viên  |
-| 3   |      |           | Thành viên  |
-| 4   |      |           | Thành viên  |
-
+| # | MSSV | Họ và tên | Vai trò |
+|---|------|-----------|---------|
+| 1 | 23BA14158| Nguyễn Chí Kiên | Nhóm trưởng |
+| 2 | 23BA14148| Phạm Vũ Khánh | Thành viên |
+| 3 | 23BA14059| Nguyễn Minh Đức | Thành viên |
+| 4 | 2410761| Nguyễn Tú Oanh | Thành viên |
+| 5 | 23BA14107| Đào Trung Hiếu | Thành viên |
 ---
 
 ## 📖 Trước khi bắt đầu — Bối cảnh / Before You Start — Context
