@@ -101,7 +101,7 @@ def web_tech(page) -> WebTech:
     return tech
 
 
-def enable_flutter_semantics(page, timeout=15000):
+def enable_flutter_semantics(page, timeout=25000):
     """Bật Flutter Semantics Tree để tạo DOM elements tương tác được.
     Tự động chờ Flutter render xong trước khi bật (Smart Wait)."""
     # Already enabled.
@@ -124,10 +124,10 @@ def enable_flutter_semantics(page, timeout=15000):
     )
 
 
-def flutter_fill(page, label, value):
+def flutter_fill(page, label, value, field_timeout=20000):
     """Nhập text vào Flutter text field thông qua semantics input."""
     field = page.locator(f'input[aria-label="{label}"]').first
-    field.wait_for(state="attached", timeout=10000)
+    field.wait_for(state="attached", timeout=field_timeout)
     field.click()
 
     # Flutter tạo input ẩn khi editing — chờ nó xuất hiện thay vì sleep
@@ -176,15 +176,46 @@ def smart_fill(page, label, value, tech: WebTech = None):
         page.locator(f'input[aria-label="{label}"]').fill(value)
 
 
-def login(page, test_config):
-    """Helper: đăng nhập và chờ trang chính load (Smart Wait)."""
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+def login(page, email_or_config, password=None):
+    """Helper: đăng nhập và chờ trang chính load (Smart Wait).
+    Hỗ trợ cả (page, test_config) và (page, email, password)"""
+    if isinstance(email_or_config, dict):
+        email = email_or_config["email"]
+        password = email_or_config["password"]
+        base_url = email_or_config["base_url"]
+    else:
+        email = email_or_config
+        base_url = BASE_URL
+
+    page.goto(base_url, wait_until="load", timeout=90000)
+    try:
+        page.locator("flt-glass-pane").wait_for(state="attached", timeout=60000)
+    except Exception:
+        pass
     enable_flutter_semantics(page)
-    flutter_fill(page, "Email", test_config["email"])
-    flutter_fill(page, "Mật khẩu", test_config["password"])
+    flutter_fill(page, "Email", email)
+    flutter_fill(page, "Mật khẩu", password)
     flutter_click_button(page, "Đăng nhập")
-    # Smart Wait: chờ trang chính load — nút "Đăng xuất" xuất hiện
     wait_for_flutter(page, text="Đăng xuất")
+    enable_flutter_semantics(page)
+
+
+def reset_database(page):
+    """Đặt lại dữ liệu hệ thống bằng cách đăng nhập thủ thư và nhấn Đặt lại dữ liệu"""
+    login(page, "librarian@library.com", "admin123")
+    tab = page.locator('flt-semantics[role="tab"][aria-label="Mượn / Trả"]')
+    if tab.count() > 0:
+        tab.first.click()
+        page.wait_for_timeout(2000)
+        enable_flutter_semantics(page)
+    reset_btn = page.locator('flt-semantics[role="button"]:has-text("Đặt lại dữ liệu")')
+    if reset_btn.count() > 0:
+        reset_btn.first.click()
+        page.wait_for_timeout(3000)
+        enable_flutter_semantics(page)
+    # Đăng xuất để đưa hệ thống về màn hình login
+    flutter_click_button(page, "Đăng xuất")
+    page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
 
 
