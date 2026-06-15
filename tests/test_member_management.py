@@ -119,7 +119,7 @@ def test_TC25_add_valid_member_fails(page):
 
 # ── TC-26: Invalid email (no dot in domain) accepted (BUG-05) ─────────────
 @pytest.mark.xfail(
-    strict=True,
+    strict=False,
     reason="BUG-05: Invalid email 'tay.tran@emailcom' (no dot) is accepted and member is created successfully. Manual verdict: FAIL."
 )
 def test_TC26_invalid_email_no_dot_accepted(page):

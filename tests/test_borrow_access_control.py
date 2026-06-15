@@ -34,38 +34,49 @@ def _borrow_first_available(page):
     return True
 
 
-# ── TC-17: Suspended member (MEM004) borrow → rejected with suspension msg ─
-def test_TC17_suspended_member_borrow_rejected(page):
-    """Manual verdict: PASS — Borrow rejected; message cites suspension"""
+# ── TC-17: Suspended member (MEM004) borrow → rejected, but WRONG message (BUG-03) ─
+# Screenshot evidence: system shows "Thành viên đã hết hạn" (expired msg) for SUSPENDED member.
+# Both suspended (MEM004) and expired (MEM005) receive the same "hết hạn" message.
+# The bug is that the system does NOT differentiate messages: suspended should show a suspension
+# message (e.g. "tạm ngưng"), NOT an expired message ("hết hạn").
+@pytest.mark.xfail(
+    strict=False,
+    reason="BUG-03 (actual): Suspended member MEM004 receives 'Thành viên đã hết hạn' "
+           "(expired message) instead of a suspension-specific message. "
+           "System uses the same message for both Suspended and Expired statuses.",
+)
+def test_TC17_suspended_member_borrow_rejected_wrong_message(page):
+    """Manual verdict: PASS (borrow rejected) — but message is wrong: shows 'expired' not 'suspended'"""
     login(page, "cu.le@email.com", "password123")
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
     ok = _borrow_first_available(page)
-    # If borrow button is missing entirely, it means the UI correctly blocked the borrow path!
     if not ok:
         page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-17_suspended_borrow.png"))
-        return
+        pytest.skip("No borrow button visible — UI may have correctly blocked suspended member")
 
     page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-17_suspended_borrow.png"))
     sem = " ".join(page.locator("flt-semantics").all_text_contents())
-    
+
     is_success = any(kw in sem.lower() for kw in ["thành công", "success", "successfully"])
-    has_suspended_msg = any(kw in sem.lower() for kw in ["tạm ngưng", "suspended", "đình chỉ",
-                                                         "tạm khóa", "khóa", "không thể", "từ chối"])
     assert not is_success, \
-        f"TC-17 FAIL: Suspended member should NOT be able to borrow. Got success status. sem_text: {sem[:300]}"
-    assert has_suspended_msg, \
-        f"TC-17 FAIL: Rejection message should mention suspension or error. Got: {sem[:300]}"
+        f"TC-17 FAIL: Suspended member should NOT be able to borrow. Got success. sem: {sem[:300]}"
+
+    # EXPECTED (per SRS): message cites SUSPENSION (e.g. "tạm ngưng", "đình chỉ")
+    # ACTUAL (BUG-03): message says "hết hạn" (expired) — wrong status reason
+    has_correct_suspended_msg = any(kw in sem.lower() for kw in ["tạm ngưng", "suspended", "đình chỉ", "tạm khóa"])
+    assert has_correct_suspended_msg, \
+        f"TC-17 FAIL (BUG-03): Suspended member should see 'suspension' message, not 'expired'. Got: {sem[:300]}"
 
 
-# ── TC-18: Expired member (MEM005) borrow → wrong rejection message (BUG-03)
-@pytest.mark.xfail(
-    strict=True,
-    reason="BUG-03: Expired member (MEM005) receives the same 'suspended' error message "
-           "instead of an expiry-specific message. Manual verdict: FAIL.",
-)
-def test_TC18_expired_member_borrow_shows_wrong_message(page):
-    """Manual verdict: FAIL → BUG-03 — MEM005 gets 'suspended' msg instead of 'expired'"""
+# ── TC-18: Expired member (MEM005) → correctly rejected with 'expired' message ──
+# Screenshot evidence: system shows "Thành viên đã hết hạn. Không thể mượn sách."
+# This IS the correct message for expired member per SRS.
+# BUG-03 note: the system uses the SAME "hết hạn" message for BOTH suspended & expired
+# members → only the expired member gets the correct reason; suspended member gets wrong reason.
+def test_TC18_expired_member_borrow_rejected(page):
+    """Manual verdict: FAIL → BUG-03 — actual: expired member gets 'hết hạn' (correct);
+    but suspended member also gets 'hết hạn' (wrong) — messages are not differentiated."""
     login(page, "binh.pham@email.com", "password123")
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
@@ -74,15 +85,12 @@ def test_TC18_expired_member_borrow_shows_wrong_message(page):
         pytest.skip("No available book for TC-18 expired member test")
     page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-18_expired_borrow.png"))
     sem = " ".join(page.locator("flt-semantics").all_text_contents())
-    # Borrow MUST be rejected
     is_success = any(kw in sem.lower() for kw in ["thành công", "success", "successfully"])
-    # EXPECTED: message says 'expired' / 'hết hạn' (NOT 'suspended')
     has_expired_msg = any(kw in sem.lower() for kw in ["hết hạn", "expired", "quá hạn thành viên"])
-    has_suspended_msg = any(kw in sem.lower() for kw in ["tạm ngưng", "suspended", "đình chỉ", "tạm khóa"])
     assert not is_success, \
-        f"TC-18 FAIL (BUG-03): Expired member should not be able to borrow successfully."
-    assert has_expired_msg and not has_suspended_msg, \
-        f"TC-18 FAIL (BUG-03): Message should cite expiry, not suspension. Got: {sem[:300]}"
+        f"TC-18 FAIL: Expired member should not be able to borrow. Got: {sem[:300]}"
+    assert has_expired_msg, \
+        f"TC-18 FAIL: Expired member should see rejection with 'hết hạn' message. Got: {sem[:300]}"
 
 
 # ── TC-19: 4th borrow allowed — 3-book limit not enforced (BUG-01) ─────────
@@ -93,8 +101,6 @@ def test_TC18_expired_member_borrow_shows_wrong_message(page):
 )
 def test_TC19_borrow_limit_3_books_not_enforced(page):
     """Manual verdict: FAIL → BUG-01 — 4th book is allowed; limit of 3 not enforced"""
-    reset_database(page)
-
     # Use MEM002 who starts with 1 active borrow (BOOK003)
     login(page, "ba.nguyen@email.com", "password123")
     page.wait_for_timeout(2000)

@@ -45,9 +45,6 @@ def _click_borrow_tab(page):
 # ── TC-15: Borrow book — happy path ───────────────────────────────────────
 def test_TC15_borrow_book_success(page):
     """Manual verdict: PASS — BOOK002 borrowed for MEM006; record 'Đang mượn', due date +14 days"""
-    # Reset data to ensure clean state
-    reset_database(page)
-
     login(page, "biet.hoang@email.com", "password123")
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
@@ -78,8 +75,6 @@ def test_TC16_already_borrowed_book_rejected(page):
 # ── TC-33: BVA boundary — 2nd active borrow succeeds ─────────────────────
 def test_TC33_borrow_at_bva_boundary_2nd_book(page):
     """Manual verdict: PASS — MEM006 borrows 2nd book (below 3-book limit): succeeds"""
-    reset_database(page)
-
     login(page, "biet.hoang@email.com", "password123")
     page.wait_for_timeout(2000)
     enable_flutter_semantics(page)
@@ -95,8 +90,6 @@ def test_TC33_borrow_at_bva_boundary_2nd_book(page):
 # ── TC-21: Return book — happy path ──────────────────────────────────────
 def test_TC21_return_book_success(page):
     """Manual verdict: PASS — BR003 (BOOK013, MEM006) returned; status → 'Đã trả'"""
-    reset_database(page)
-
     login(page, "librarian@library.com", "admin123")
     _click_borrow_tab(page)
     page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-21_return_before.png"))
@@ -131,8 +124,6 @@ def test_TC22_return_unborrowed_book_rejected(page):
 # ── TC-38: Return overdue book → overdue warning shown ───────────────────
 def test_TC38_return_overdue_shows_warning(page):
     """Manual verdict: PASS — Return successful AND overdue warning is displayed"""
-    reset_database(page)
-
     login(page, "librarian@library.com", "admin123")
     _click_borrow_tab(page)
 

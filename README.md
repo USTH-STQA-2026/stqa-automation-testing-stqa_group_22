@@ -17,9 +17,9 @@ Sử dụng **Playwright + Python** để kiểm thử hệ thống Mượn sác
 
 |              | Thông tin                    |
 | ------------ | ---------------------------- |
-| **Tên nhóm** | `<!-- VD: Nhóm 1 -->`        |
-| **Lớp**      | `<!-- VD: SE001.P11 -->`     |
-| **Học kỳ**   | `<!-- VD: HK2 2025-2026 -->` |
+| **Tên nhóm** | `<!-- VD: Nhóm 22 -->` |
+| **Lớp** | `<!-- 252ICT2012.L1 -->` |
+| **Học kỳ** | `<!-- VD: HK2 2025-2026 -->` |
 
 | # | MSSV | Họ và tên | Vai trò |
 |---|------|-----------|---------|
@@ -75,20 +75,24 @@ SRS (Yêu cầu phần mềm) → Dev xây hệ thống → A1: Kiểm thử th�
 ## 📁 Cấu trúc dự án / Project Structure
 
 ```
-stqa-library-automation-starter/
-├── conftest.py          # Fixtures & helper functions (COMPLETE / ĐÃ HOÀN CHỈNH)
-├── web_detector.py      # Web technology detector module (COMPLETE / ĐÃ HOÀN CHỈNH)
-├── pytest.ini           # pytest configuration (Cấu hình pytest)
-├── requirements.txt     # Dependencies
-├── .env.example         # Environment variable template (Template biến môi trường)
+stqa-automation-testing-stqa_group_22/
+├── conftest.py                    # Fixtures & helper functions (ĐÃ HOÀN CHỈNH)
+├── web_detector.py                # Web technology detector module (ĐÃ HOÀN CHỈNH)
+├── pytest.ini                     # pytest configuration
+├── requirements.txt               # Dependencies
+├── .env.example                   # Environment variable template
 ├── .gitignore
 ├── LICENSE
 ├── README.md
+├── screenshots/                   # Ảnh chụp màn hình tự động (38 TC)
 └── tests/
-    ├── test_login.py           # TC-01 (example / mẫu) + TC-02, TC-03 (TODO)
-    ├── test_search.py          # TC-04 ~ TC-07 (TODO)
-    ├── test_borrow_return.py   # TC-08 ~ TC-10 (TODO)
-    └── test_general.py         # TC-11 ~ TC-12 (TODO)
+    ├── test_login.py              # REQ-01: TC-01 → TC-07, TC-31 (8 TCs)
+    ├── test_general.py            # REQ-02 + REQ-06: TC-08, TC-09, TC-23, TC-24, TC-35 (5 TCs)
+    ├── test_search.py             # REQ-03: TC-10 → TC-14, TC-32, TC-37 (7 TCs)
+    ├── test_borrow_return.py      # REQ-04 + REQ-05: TC-15, TC-16, TC-21, TC-22, TC-33, TC-38 (6 TCs)
+    ├── test_borrow_access_control.py  # REQ-04: TC-17 → TC-20 (4 TCs)
+    ├── test_member_management.py  # REQ-07: TC-25 → TC-28 (4 TCs)
+    └── test_borrow_records.py     # REQ-08: TC-29, TC-30, TC-36, TC-39 (4 TCs)
 ```
 
 ---
@@ -185,22 +189,99 @@ CI sẽ thực hiện:
 
 ## 📋 Danh sách Test Case / Test Case List
 
-| TC    | Mô tả                                                | File                    | Trạng thái |
-| ----- | ---------------------------------------------------- | ----------------------- | ---------- |
-| TC-01 | Đăng nhập thành công (*Login success*)               | `test_login.py`         | ✅ Mẫu      |
-| TC-02 | Đăng nhập thất bại — sai mật khẩu (*Wrong password*) | `test_login.py`         | 🔴 TODO     |
-| TC-03 | Đăng nhập thất bại — để trống (*Empty fields*)       | `test_login.py`         | 🔴 TODO     |
-| TC-04 | Tìm sách theo tên (*Search by name*)                 | `test_search.py`        | 🔴 TODO     |
-| TC-05 | Tìm sách — không có kết quả (*No result*)            | `test_search.py`        | 🔴 TODO     |
-| TC-06 | Lọc theo thể loại (*Filter by category*)             | `test_search.py`        | 🔴 TODO     |
-| TC-07 | Tìm theo tác giả (*Search by author*)                | `test_search.py`        | 🔴 TODO     |
-| TC-08 | Mượn sách (*Borrow a book*)                          | `test_borrow_return.py` | 🔴 TODO     |
-| TC-09 | Xem sách đang mượn (*View borrowed books*)           | `test_borrow_return.py` | 🔴 TODO     |
-| TC-10 | Trả sách (*Return a book*)                           | `test_borrow_return.py` | 🔴 TODO     |
-| TC-11 | Đăng xuất (*Logout*)                                 | `test_general.py`       | 🔴 TODO     |
-| TC-12 | Chuyển ngôn ngữ sang EN (*Switch language*)          | `test_general.py`       | 🔴 TODO     |
+> **Kết quả thực thi:** 38/38 TC hoàn thành — 29 Pass ✅, 9 Fail (xfail = bug đã ghi nhận) 🐛
 
-**Yêu cầu:** Hoàn thành tất cả 11 test case còn lại (TC-02 → TC-12).
+### REQ-01 — Đăng nhập (`test_login.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-01 | Đăng nhập thành công — Librarian                              | ✅ Pass           | ✅ Pass          | `TC-01_librarian_login.png` |
+| TC-02 | Đăng nhập thành công — Member                                 | ✅ Pass           | ✅ Pass          | `TC-02_member_login.png` |
+| TC-03 | Email không tồn tại → bị từ chối                              | ✅ Pass           | ✅ Pass          | `TC-03_nonexistent_email.png` |
+| TC-04 | Sai mật khẩu → thông báo "Incorrect password"                 | ✅ Pass           | ✅ Pass          | `TC-04_wrong_password.png` |
+| TC-05 | Bỏ trống cả email và mật khẩu → thông báo lỗi                | ✅ Pass           | ✅ Pass          | `TC-05_empty_fields.png` |
+| TC-06 | Thành viên Suspended (MEM004) vẫn đăng nhập được              | ✅ Pass           | ✅ Pass          | `TC-06_suspended_login.png` |
+| TC-07 | Thành viên Expired (MEM005) vẫn đăng nhập được                | ✅ Pass           | ✅ Pass          | `TC-07_expired_login.png` |
+| TC-31 | Chỉ bỏ trống email (có mật khẩu) → bị từ chối                | ✅ Pass           | ✅ Pass          | `TC-31_only_email_empty.png` |
+
+### REQ-02 — Xem danh sách sách (`test_general.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-08 | Hiển thị đầy đủ 20 sách với tất cả trường thông tin          | ✅ Pass           | ✅ Pass          | `TC-08_book_list.png` |
+| TC-09 | Trạng thái sách cập nhật ngay sau khi mượn                    | ✅ Pass           | ✅ Pass          | `TC-09_status_update.png` |
+
+### REQ-03 — Tìm kiếm & Lọc sách (`test_search.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-10 | Tìm theo tên sách "Flutter" → trả đúng kết quả               | ✅ Pass           | ✅ Pass          | `TC-10_search_flutter.png` |
+| TC-11 | Tìm theo tên tác giả "Nguyễn"                                 | ✅ Pass           | ✅ Pass          | `TC-11_search_nguyen.png` |
+| TC-12 | Tìm kiếm không phân biệt hoa thường (flutter = FLUTTER)       | ✅ Pass           | ✅ Pass          | `TC-12_search_lowercase.png` |
+| TC-13 | Tìm không có kết quả → thông báo "No books found"             | ✅ Pass           | ✅ Pass          | `TC-13_no_result.png` |
+| TC-32 | Xóa từ khóa tìm kiếm → danh sách đầy đủ được khôi phục       | ✅ Pass           | ✅ Pass          | `TC-32_clear_search.png` |
+| TC-14 | Lọc thể loại không phân biệt hoa thường                       | ❌ **Fail**       | 🐛 xfail BUG-02 | `TC-14_filter_correct_case.png`, `TC-14_filter_lowercase.png` |
+| TC-37 | Kết hợp tìm kiếm + lọc thể loại → AND logic                  | ❌ **Fail**       | 🐛 xfail BUG-06 | `TC-37_search_filter_combo.png` |
+
+### REQ-04 — Mượn sách (`test_borrow_return.py`, `test_borrow_access_control.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-15 | Mượn sách thành công (happy path) — MEM006                   | ✅ Pass           | ✅ Pass          | `TC-15_borrow_success.png` |
+| TC-16 | Sách đã có người mượn → bị từ chối                            | ✅ Pass           | ✅ Pass          | `TC-16_reject_borrowed.png` |
+| TC-33 | Mượn tại BVA boundary (lần mượn thứ 2) → thành công          | ✅ Pass           | ✅ Pass          | `TC-33_bva_boundary.png` |
+| TC-17 | Thành viên Suspended → bị từ chối nhưng hiện thông báo "hết hạn" sai | ❌ **Fail** | 🐛 xfail BUG-03 | `TC-17_suspended_borrow.png` |
+| TC-20 | Sách bị mất (Lost) → không thể mượn                           | ✅ Pass           | ✅ Pass          | `TC-20_lost_book.png` |
+| TC-18 | Thành viên Expired → bị từ chối với thông báo "hết hạn" (đúng) | ✅ Pass         | ✅ Pass          | `TC-18_expired_borrow.png` |
+| TC-19 | Vượt giới hạn 3 sách → vẫn cho mượn sách thứ 4               | ❌ **Fail**       | 🐛 xfail BUG-01 | `TC-19_borrow_limit.png` |
+
+### REQ-05 — Trả sách (`test_borrow_return.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-21 | Trả sách thành công — Librarian trả BR003                     | ✅ Pass           | ✅ Pass          | `TC-21_return_success.png` |
+| TC-22 | Trả sách chưa mượn → bị từ chối                               | ✅ Pass           | ✅ Pass          | `TC-22_no_return_btn.png` |
+| TC-38 | Trả sách quá hạn → hiển thị cảnh báo overdue                 | ✅ Pass           | ✅ Pass          | `TC-38_return_overdue.png` |
+
+### REQ-06 — Xử lý quá hạn (`test_general.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-24 | Thành viên xem phiếu mượn quá hạn của chính mình              | ✅ Pass           | ✅ Pass          | `TC-24_member_overdue.png` |
+| TC-35 | Librarian xem tất cả phiếu quá hạn của mọi thành viên         | ✅ Pass           | ✅ Pass          | `TC-35_all_overdue.png` |
+| TC-23 | Check Overdue lần 2 báo "0 phiếu" sai — bản ghi vẫn tồn tại  | ❌ **Fail**       | 🐛 xfail BUG-04 | `TC-23_check_overdue.png` |
+
+### REQ-07 — Quản lý thành viên (`test_member_management.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-28 | Thành viên không có tab Members / nút Thêm thành viên         | ✅ Pass           | ✅ Pass          | `TC-28_member_no_tab.png` |
+| TC-25 | Thêm thành viên với email hợp lệ → bị từ chối sai             | ❌ **Fail**       | 🐛 xfail BUG-05 | `TC-25_add_member_valid.png` |
+| TC-26 | Email thiếu dấu chấm → được chấp nhận (sai)                   | ❌ **Fail**       | 🐛 xfail BUG-05 | `TC-26_invalid_email_no_dot.png` |
+| TC-27 | Email trùng → thông báo "Invalid email" thay vì "duplicate"   | ❌ **Fail**       | 🐛 xfail BUG-05 | `TC-27_duplicate_email.png` |
+
+### REQ-08 — Tra cứu phiếu mượn (`test_borrow_records.py`)
+
+| TC    | Mô tả                                                         | Kết quả thủ công | Automation      | Screenshot |
+| ----- | ------------------------------------------------------------- | ---------------- | --------------- | ---------- |
+| TC-29 | Librarian xem phiếu mượn của bất kỳ thành viên nào            | ✅ Pass           | ✅ Pass          | `TC-29_librarian_records.png` |
+| TC-30 | Thành viên chỉ xem được phiếu mượn của chính mình             | ✅ Pass           | ✅ Pass          | `TC-30_member_own_records.png` |
+| TC-36 | Phiếu đã trả hiển thị đúng trạng thái và đầy đủ trường        | ✅ Pass           | ✅ Pass          | `TC-36_returned_record.png` |
+| TC-39 | Thành viên có thể xem và trả sách thay thành viên khác (lỗi!) | ❌ **Fail**       | 🐛 xfail BUG-07 | `TC-39_cross_member_access.png` |
+
+---
+
+### 🐛 Tổng hợp Bug / Bug Summary
+
+| Bug    | Severity    | TC liên quan      | Mô tả ngắn |
+| ------ | ----------- | ----------------- | ---------- |
+| BUG-01 | High        | TC-19             | Cho mượn sách thứ 4 — vi phạm giới hạn 3 sách |
+| BUG-02 | Medium      | TC-14             | Bộ lọc thể loại phân biệt hoa thường |
+| BUG-03 | Medium      | TC-17             | Thành viên Suspended nhận thông báo "hết hạn" sai thay vì thông báo đình chỉ |
+| BUG-04 | High        | TC-23             | Check Overdue: lỗi boundary ngày hôm nay + lần 2 báo 0 |
+| BUG-05 | High        | TC-25, TC-26, TC-27 | Validation email Add Member bị lỗi 3 chiều |
+| BUG-06 | Medium      | TC-37             | Bộ lọc thể loại bị bỏ qua khi kết hợp với tìm kiếm |
+| BUG-07 | **Critical** | TC-39            | Thành viên xem và trả sách của thành viên khác — vi phạm kiểm soát truy cập |
 
 ---
 
