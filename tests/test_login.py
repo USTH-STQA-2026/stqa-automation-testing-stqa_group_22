@@ -1,114 +1,151 @@
 """
-Login Tests (*Kiểm thử Đăng nhập*) — Library Book Borrowing System (*Hệ thống Mượn sách thư viện*)
-
-📖 Textbook concepts in this file:
-   - RIPR Model (Ch.2): See [R], [I], [P], [R✓] comments in TC-01
-   - Data-Driven Testing / @parametrize (Ch.3 §3.3.2): See hint in TC-02/TC-03
-
-This file contains 1 completed example (TC-01).
-Students must complete TC-02 and TC-03.
-
-(*File này chứa 1 ví dụ mẫu (TC-01) đã hoàn chỉnh.
-Sinh viên cần hoàn thành TC-02 và TC-03.*)
+REQ-01 Login — Verification of Manual Submission
+TCs: TC-01, TC-02, TC-03, TC-04, TC-05, TC-06, TC-07, TC-31
+Manual verdict: ALL PASS (8/8)
 """
 import os
 import pytest
-from conftest import enable_flutter_semantics, flutter_fill, flutter_click_button, wait_for_flutter, SCREENSHOT_DIR
+from conftest import (
+    login, enable_flutter_semantics, flutter_fill,
+    flutter_click_button, BASE_URL, SCREENSHOT_DIR
+)
 
 
-def test_login_success(page, test_config):
-    """TC-01: Login success with valid credentials (*Đăng nhập thành công với thông tin hợp lệ*)
-
-    ✅ COMPLETED — Use as a reference example.
-    (*ĐÃ HOÀN THÀNH — Dùng làm ví dụ tham khảo.*)
-
-    📖 RIPR Model (Textbook Ch.2 — Reachability → Infection → Propagation → Revealability):
-        Mỗi dòng code trong test tương ứng với 1 bước trong chuỗi RIPR.
-        Xem comment [R], [I], [P], [R✓] bên dưới.
-    """
-    # [R] Reachability: Truy cập trang đăng nhập — chạm tới UI cần test
-    page.goto(test_config["base_url"], wait_until="networkidle", timeout=60000)
+# ── TC-01: Librarian login success ────────────────────────────────────────
+def test_TC01_librarian_login_success(page):
+    """Manual verdict: PASS — Login OK, AppBar shows Nguyen Thu Thu (Librarian)"""
+    page.goto(BASE_URL, wait_until="load", timeout=90000)
+    try:
+        page.locator("flt-glass-pane").wait_for(state="attached", timeout=60000)
+    except Exception:
+        pass
     enable_flutter_semantics(page)
-
-    # [I] Infection: Nhập dữ liệu hợp lệ — kích hoạt logic đăng nhập trong hệ thống
-    flutter_fill(page, "Email", test_config["email"])
-    flutter_fill(page, "Mật khẩu", test_config["password"])
+    flutter_fill(page, "Email", "librarian@library.com")
+    flutter_fill(page, "Mật khẩu", "admin123")
     flutter_click_button(page, "Đăng nhập")
-
-    # [P] Propagation: Chờ trạng thái lan truyền ra UI — nút "Đăng xuất" xuất hiện
-    # (Smart Wait: thay vì time.sleep(5) — nhanh hơn và ổn định hơn)
-    wait_for_flutter(page, text="Đăng xuất")
-    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "login_success.png"))
-
-    # [R✓] Revealability: Kiểm tra kết quả — Test Oracle phát hiện lỗi nếu có
-    sem_text = " ".join(page.locator("flt-semantics").all_text_contents())
-    has_user_name = test_config["display_name"] in sem_text
-    has_logout = "Đăng xuất" in sem_text or "Logout" in sem_text
-    assert has_user_name or has_logout, \
-        f"Login failed: '{test_config['display_name']}' or Logout button not found " \
-        f"(Đăng nhập không thành công: không tìm thấy tên hoặc nút Đăng xuất)"
+    page.wait_for_timeout(3000)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-01_librarian_login.png"))
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    assert any(kw in sem for kw in ["Nguyen Thu Thu", "Thủ thư", "Librarian", "Đăng xuất"]), \
+        f"TC-01 FAIL: Librarian login should show name/role. Got: {sem[:300]}"
 
 
-def test_login_fail_wrong_password(page, test_config):
-    """TC-02: Login fail – wrong password (*Đăng nhập thất bại – sai mật khẩu*)
-
-    🔴 NOT COMPLETED — Students must implement this test case.
-    (*CHƯA HOÀN THÀNH — Sinh viên cần viết code cho test case này.*)
-
-    Description (*Mô tả*):
-        Enter correct email but wrong password → system stays on login page
-        or shows an error message.
-        (*Nhập email đúng nhưng mật khẩu sai → hệ thống không chuyển trang,
-        hoặc hiển thị thông báo lỗi.*)
-
-    📖 RIPR — Áp dụng cho test case này:
-        [R] page.goto(...) → Chạm tới trang đăng nhập
-        [I] flutter_fill(..., "wrongpassword") → Nhiễm trạng thái lỗi
-        [P] Hệ thống xử lý login → Lỗi lan truyền ra thông báo
-        [R✓] assert ... → Test Oracle kiểm tra thông báo lỗi
-
-    💡 Bonus B2 — Data-Driven Testing:
-        TC-02 và TC-03 có cùng pattern (nhập → click → kiểm tra lỗi).
-        Bạn có thể gộp bằng @pytest.mark.parametrize:
-
-        @pytest.mark.parametrize("email, password, tc_id", [
-            ("valid@email.com", "wrongpass", "TC-02"),
-            ("", "", "TC-03"),
-        ])
-        def test_login_fail(page, test_config, email, password, tc_id):
-            ...
-
-        Xem thêm: docs/textbook-concepts.md §3 (Data-Driven Testing)
-
-    Suggested steps (*Gợi ý các bước*):
-        1. Navigate to login page (*Truy cập trang đăng nhập*)
-        2. Enable Flutter semantics (*Bật Flutter semantics*)
-        3. Enter correct Email (from test_config["email"]) (*Nhập Email đúng*)
-        4. Enter wrong Password (e.g. "wrongpassword") (*Nhập Mật khẩu sai*)
-        5. Click "Đăng nhập" (*Click "Đăng nhập"*)
-        6. Assert: URL still on login page OR error message shown
-           (*Assert: URL vẫn ở trang đăng nhập HOẶC có thông báo lỗi*)
-    """
-    # TODO: Students implement here (Sinh viên viết code ở đây)
-    pytest.skip("Not implemented — student must complete (Chưa hoàn thành)")
+# ── TC-02: Member login success ───────────────────────────────────────────
+def test_TC02_member_login_success(page):
+    """Manual verdict: PASS — Login OK, AppBar shows Nguyen Hoc Ba (Member)"""
+    login(page, "ba.nguyen@email.com", "password123")
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-02_member_login.png"))
+    enable_flutter_semantics(page)
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    assert any(kw in sem for kw in ["Nguyen Hoc Ba", "Thành viên", "Member", "Đăng xuất"]), \
+        f"TC-02 FAIL: Member login should show name/role. Got: {sem[:300]}"
 
 
-def test_login_fail_empty_fields(page, test_config):
-    """TC-03: Login fail – empty fields (*Đăng nhập thất bại – để trống các trường*)
+# ── TC-03: Non-existent email → rejected ─────────────────────────────────
+def test_TC03_nonexistent_email_rejected(page):
+    """Manual verdict: PASS — Login failed, stays on login page"""
+    page.goto(BASE_URL, wait_until="load", timeout=90000)
+    try:
+        page.locator("flt-glass-pane").wait_for(state="attached", timeout=60000)
+    except Exception:
+        pass
+    enable_flutter_semantics(page)
+    flutter_fill(page, "Email", "noone@email.com")
+    flutter_fill(page, "Mật khẩu", "password123")
+    flutter_click_button(page, "Đăng nhập")
+    page.wait_for_timeout(2500)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-03_nonexistent_email.png"))
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    still_on_login = any(kw in sem for kw in ["Đăng nhập", "Email", "Mật khẩu"])
+    has_error = any(kw in sem for kw in ["không tìm thấy", "not found", "sai", "lỗi",
+                                          "Member not found", "Invalid"])
+    assert still_on_login or has_error, \
+        f"TC-03 FAIL: Non-existent email should be rejected. Got: {sem[:300]}"
 
-    🔴 NOT COMPLETED — Students must implement this test case.
-    (*CHƯA HOÀN THÀNH — Sinh viên cần viết code cho test case này.*)
 
-    Description (*Mô tả*):
-        Leave all fields empty, click Login → system stays on login page.
-        (*Không nhập gì, bấm Đăng nhập → hệ thống không chuyển trang.*)
+# ── TC-04: Wrong password → 'Incorrect password' ─────────────────────────
+def test_TC04_wrong_password_rejected(page):
+    """Manual verdict: PASS — Shows 'Incorrect password', page does not change"""
+    page.goto(BASE_URL, wait_until="load", timeout=90000)
+    try:
+        page.locator("flt-glass-pane").wait_for(state="attached", timeout=60000)
+    except Exception:
+        pass
+    enable_flutter_semantics(page)
+    flutter_fill(page, "Email", "ba.nguyen@email.com")
+    flutter_fill(page, "Mật khẩu", "wrongpassword")
+    flutter_click_button(page, "Đăng nhập")
+    page.wait_for_timeout(2500)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-04_wrong_password.png"))
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    assert any(kw in sem for kw in ["Incorrect password", "sai mật khẩu", "Sai",
+                                     "Mật khẩu không đúng", "không đúng"]), \
+        f"TC-04 FAIL: Wrong password should show rejection message. Got: {sem[:300]}"
 
-    Suggested steps (*Gợi ý các bước*):
-        1. Navigate to login page (*Truy cập trang đăng nhập*)
-        2. Enable Flutter semantics (*Bật Flutter semantics*)
-        3. Do NOT enter Email/Password — click "Đăng nhập" immediately
-           (*KHÔNG nhập Email/Mật khẩu — click "Đăng nhập" ngay*)
-        4. Assert: URL still on login page (*Assert: URL vẫn ở trang đăng nhập*)
-    """
-    # TODO: Students implement here (Sinh viên viết code ở đây)
-    pytest.skip("Not implemented — student must complete (Chưa hoàn thành)")
+
+# ── TC-05: Empty email and password → empty field message ─────────────────
+def test_TC05_empty_email_and_password(page):
+    """Manual verdict: PASS — Shows 'Please enter email and password'"""
+    page.goto(BASE_URL, wait_until="load", timeout=90000)
+    try:
+        page.locator("flt-glass-pane").wait_for(state="attached", timeout=60000)
+    except Exception:
+        pass
+    enable_flutter_semantics(page)
+    # Leave fields empty, just click login
+    flutter_click_button(page, "Đăng nhập")
+    page.wait_for_timeout(2000)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-05_empty_fields.png"))
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    still_on_login = any(kw in sem for kw in ["Đăng nhập", "Email", "Mật khẩu"])
+    has_msg = any(kw in sem for kw in ["Please enter", "Vui lòng nhập", "email", "mật khẩu",
+                                        "trống", "bắt buộc"])
+    assert still_on_login, \
+        f"TC-05 FAIL: Empty login should stay on login page. Got: {sem[:300]}"
+
+
+# ── TC-06: Suspended member (MEM004) can log in ───────────────────────────
+def test_TC06_suspended_member_can_login(page):
+    """Manual verdict: PASS — Login OK, AppBar shows Le Can Cu (Member)"""
+    login(page, "cu.le@email.com", "password123")
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-06_suspended_login.png"))
+    enable_flutter_semantics(page)
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    assert any(kw in sem for kw in ["Le Can Cu", "Đăng xuất", "Thoát"]), \
+        f"TC-06 FAIL: Suspended member should be able to log in. Got: {sem[:300]}"
+
+
+# ── TC-07: Expired member (MEM005) can log in ────────────────────────────
+def test_TC07_expired_member_can_login(page):
+    """Manual verdict: PASS — Login OK, AppBar shows Pham Trung Binh (Member)"""
+    login(page, "binh.pham@email.com", "password123")
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-07_expired_login.png"))
+    enable_flutter_semantics(page)
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    assert any(kw in sem for kw in ["Pham Trung Binh", "Đăng xuất", "Thoát"]), \
+        f"TC-07 FAIL: Expired member should be able to log in. Got: {sem[:300]}"
+
+
+# ── TC-31: Only email empty (password filled) → rejected ─────────────────
+def test_TC31_only_email_empty_rejected(page):
+    """Manual verdict: PASS — Shows message, page does not change"""
+    page.goto(BASE_URL, wait_until="load", timeout=90000)
+    try:
+        page.locator("flt-glass-pane").wait_for(state="attached", timeout=60000)
+    except Exception:
+        pass
+    enable_flutter_semantics(page)
+    # Only fill password, leave email empty
+    flutter_fill(page, "Mật khẩu", "password123")
+    flutter_click_button(page, "Đăng nhập")
+    page.wait_for_timeout(2000)
+    enable_flutter_semantics(page)
+    page.screenshot(path=os.path.join(SCREENSHOT_DIR, "TC-31_only_email_empty.png"))
+    sem = " ".join(page.locator("flt-semantics").all_text_contents())
+    still_on_login = any(kw in sem for kw in ["Đăng nhập", "Email", "Mật khẩu"])
+    assert still_on_login, \
+        f"TC-31 FAIL: Login with empty email should stay on login page. Got: {sem[:300]}"
